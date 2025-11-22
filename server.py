@@ -1,45 +1,50 @@
-# server.py (FINAL FIX: Image Learning Enabled)
+# server.py (FINAL FIX: Login and Teach pages separated, Image Learning Enabled)
 import os
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
-from google import genai as gemini # জেমিনি SDK-কে 'gemini' নামে ইমপোর্ট করা হয়েছে
+from google import genai as gemini
 from google.genai.errors import APIError
-import base64 
+import base64
 
 load_dotenv()
 
+# Set the template folder to the current directory for easy access to HTML files
 app = Flask(__name__, template_folder='.') 
 
 # Configuration
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
-# Client Initialisation (Fixed)
+# Client Initialisation
 try:
-    # API Key ব্যবহার করে সরাসরি ক্লায়েন্ট অবজেক্ট তৈরি করা হলো
+    # Initialize the client using the environment variable
     client = gemini.Client(api_key=os.getenv("GEMINI_API_KEY"))
 except Exception as e:
-    # Key না থাকলে ক্র্যাশ হওয়া আটকানো
+    # This prevents the server from crashing if API key is missing during deployment
     print(f"Warning: Gemini Client initialization failed. Check API Key. Error: {e}")
     client = None 
 
 # Simple in-memory knowledge base (RAG Simulation)
 knowledge_base = [] 
 
-# --- Admin (Learning) Endpoint ---
+# --- Admin Authentication Endpoint ---
 
 @app.route('/admin_login', methods=['POST'])
 def admin_login():
     """Handles admin login for accessing the learning panel."""
     data = request.json
     password = data.get('password')
+    
+    # Check against the secure server-side environment variable
     if password == ADMIN_PASSWORD:
         return jsonify({"success": True, "message": "Login successful!"})
     return jsonify({"success": False, "message": "Incorrect password."}), 401
 
+# --- Admin Learning Endpoint (Accessed via /teach page) ---
+
 @app.route('/learn', methods=['POST'])
 def learn_content():
     """Endpoint for the admin to upload text or images to teach the AI."""
-    # Front-end থেকে পাসওয়ার্ড যাচাই
+    # Authenticate using the password sent from the admin page
     if request.form.get('admin_pass') != ADMIN_PASSWORD:
         return jsonify({"error": "Unauthorized Access"}), 401
     
@@ -51,7 +56,7 @@ def learn_content():
 
     global knowledge_base
 
-    # ✅ IMAGE LEARNING RENEABLED
+    # ✅ IMAGE LEARNING ENABLED AND FIXED
     if uploaded_file:
         if uploaded_file.filename == '':
             return jsonify({"error": "No selected file"}), 400
@@ -67,7 +72,7 @@ def learn_content():
                 "The following image contains a mathematical or physics concept, formula, "
                 "or problem from an HSC-level textbook. Analyze it, summarize the key information, "
                 "and integrate this knowledge into your base to solve future user questions. "
-                "Confirm learning with the message: 'New content added to knowledge base from image.' (Respond only with the confirmation message)"
+                "Confirm learning with the message: 'New content added to knowledge base from image.'"
             )
             
             # Send the image and prompt to the model
@@ -107,6 +112,8 @@ def ask_ai():
     if not client:
         return jsonify({"error": "AI Client not initialized. Check API Key."}), 500
 
+
+    # Retrieve knowledge and add it to the prompt (RAG Simulation)
     context = "\n".join(knowledge_base)
     
     full_prompt = (
@@ -117,23 +124,32 @@ def ask_ai():
     )
 
     try:
+        # Call the Gemini API
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=full_prompt
+            contents=full_prompt 
         ) 
         return jsonify({"answer": response.text})
     except Exception as e:
+        # Catch any API errors
         return jsonify({"error": f"AI error: {str(e)}"}), 500
 
 # --- Routes for HTML Pages ---
 
 @app.route('/')
 def index():
+    # Renders the main chat/landing page
     return render_template('index.html')
 
 @app.route('/admin')
 def admin():
+    # Renders the dedicated login page
     return render_template('admin.html')
+
+@app.route('/teach')
+def teach():
+    # Renders the dedicated teaching content page
+    return render_template('teach.html')
 
 
 if __name__ == '__main__':
