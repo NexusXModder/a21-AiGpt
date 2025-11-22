@@ -1,4 +1,4 @@
-# server.py (FINAL FIX: Login and Teach pages separated, Image Learning Enabled)
+# server.py (FINAL FIXED VERSION - Persistence Added)
 import os
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
@@ -13,18 +13,39 @@ app = Flask(__name__, template_folder='.')
 
 # Configuration
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+KNOWLEDGE_FILE = "knowledge_base.txt" # 💡 নতুন: ডেটা সংরক্ষণের জন্য ফাইলের নাম
+
+# --- Persistence Functions ---
+
+def load_knowledge():
+    """Loads knowledge from the persistence file on server startup."""
+    if os.path.exists(KNOWLEDGE_FILE):
+        try:
+            with open(KNOWLEDGE_FILE, 'r', encoding='utf-8') as f:
+                # Read lines and strip any blank spaces, ignoring empty lines
+                return [line.strip() for line in f.readlines() if line.strip()]
+        except Exception as e:
+            print(f"Error loading knowledge file: {e}")
+            return []
+    return []
+
+def save_knowledge(knowledge_list):
+    """Saves the current knowledge list to the persistence file."""
+    try:
+        with open(KNOWLEDGE_FILE, 'w', encoding='utf-8') as f:
+            f.write("\n".join(knowledge_list))
+    except Exception as e:
+        print(f"Error saving knowledge file: {e}")
 
 # Client Initialisation
 try:
-    # Initialize the client using the environment variable
     client = gemini.Client(api_key=os.getenv("GEMINI_API_KEY"))
 except Exception as e:
-    # This prevents the server from crashing if API key is missing during deployment
     print(f"Warning: Gemini Client initialization failed. Check API Key. Error: {e}")
     client = None 
 
 # Simple in-memory knowledge base (RAG Simulation)
-knowledge_base = [] 
+knowledge_base = load_knowledge() # 💡 CRITICAL: সার্ভার স্টার্ট হওয়ার সময় ফাইল থেকে ডেটা লোড করা হচ্ছে।
 
 # --- Admin Authentication Endpoint ---
 
@@ -34,7 +55,6 @@ def admin_login():
     data = request.json
     password = data.get('password')
     
-    # Check against the secure server-side environment variable
     if password == ADMIN_PASSWORD:
         return jsonify({"success": True, "message": "Login successful!"})
     return jsonify({"success": False, "message": "Incorrect password."}), 401
@@ -56,13 +76,12 @@ def learn_content():
 
     global knowledge_base
 
-    # ✅ IMAGE LEARNING ENABLED AND FIXED
+    # IMAGE LEARNING
     if uploaded_file:
         if uploaded_file.filename == '':
             return jsonify({"error": "No selected file"}), 400
             
         try:
-            # Create a Part from the uploaded image file
             image_part = gemini.types.Part.from_bytes(
                 data=uploaded_file.read(),
                 mime_type=uploaded_file.content_type
@@ -75,13 +94,13 @@ def learn_content():
                 "Confirm learning with the message: 'New content added to knowledge base from image.'"
             )
             
-            # Send the image and prompt to the model
             response = client.models.generate_content(
                 contents=[prompt, image_part], 
                 model='gemini-2.5-flash'
             )
             
             knowledge_base.append(f"Learned from image summary: {response.text}")
+            save_knowledge(knowledge_base) # 💡 CRITICAL: নতুন ডেটা যুক্ত হওয়ার পর সেভ করা হচ্ছে।
 
             return jsonify({"success": True, "message": f"Successfully learned from image. Model response: {response.text}"})
 
@@ -93,6 +112,7 @@ def learn_content():
     # TEXT LEARNING
     if text_input:
         knowledge_base.append(f"Learned from text: {text_input}")
+        save_knowledge(knowledge_base) # 💡 CRITICAL: নতুন ডেটা যুক্ত হওয়ার পর সেভ করা হচ্ছে।
         return jsonify({"success": True, "message": "Learned from text successfully."})
             
     return jsonify({"error": "No content provided."}), 400
@@ -113,42 +133,37 @@ def ask_ai():
         return jsonify({"error": "AI Client not initialized. Check API Key."}), 500
 
 
-    # Retrieve knowledge and add it to the prompt (RAG Simulation)
+    # Retrieve knowledge from the loaded list
     context = "\n".join(knowledge_base)
     
     full_prompt = (
         f"You are an HSC-level Math and Physics Tutor for students in Bangladesh. "
         f"You have the following supplementary information from textbooks/notes that you MUST use to answer the question: \n---Knowledge Base---\n{context}\n---\n"
-        f"Now, provide a detailed and accurate solution to the question below. Respond in Bengali (Bangla) for the user's ease of understanding. "
+        f"Now, provide a detailed and accurate solution to the question below. The solution MUST be formatted using **bolding** for steps and headings, and using $...$ for mathematical expressions/formulas, like a proper guidebook. Respond ONLY in Bengali (Bangla). "
         f"Question: {question}"
     )
 
     try:
-        # Call the Gemini API
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=full_prompt 
         ) 
         return jsonify({"answer": response.text})
     except Exception as e:
-        # Catch any API errors
         return jsonify({"error": f"AI error: {str(e)}"}), 500
 
 # --- Routes for HTML Pages ---
 
 @app.route('/')
 def index():
-    # Renders the main chat/landing page
     return render_template('index.html')
 
 @app.route('/admin')
 def admin():
-    # Renders the dedicated login page
     return render_template('admin.html')
 
 @app.route('/teach')
 def teach():
-    # Renders the dedicated teaching content page
     return render_template('teach.html')
 
 
