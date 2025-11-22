@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Server Login — A21-GPT</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <img src="static/assets/logo.svg" class="logo-large" alt="A21-GPT"/>
+    <h2>Server Login</h2>
+    <p class="muted">Front-end only. Your backend will validate credentials.</p>
+
+    <form id="loginForm" onsubmit="return false;">
+      <label class="label">Username</label>
+      <input id="username" class="input" placeholder="admin" required/>
+
+      <label class="label">Password</label>
+      <input id="password" type="password" class="input" placeholder="••••••" required/>
+
+      <div class="form-actions">
+        <button class="btn-primary" onclick="alert('Submit credentials to your backend')">Sign In</button>
+        <a class="btn-ghost" href="index.html">Back</a>
+      </div>
+    </form>
+  </main>
+</body>
+</html>
