@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor Admin Panel</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <div class="container admin-panel-container"> 
+        <header class="chat-header" style="background-color: var(--primary-color);">
+            <button class="server-login-btn back-btn" onclick="goToChat()" style="background-color: #3b3b4d;"> 
+                <span class="diamond">&larr;</span> Back to Chat
+            </button>
+            <h1>🔐 Admin Server Login</h1>
+        </header>
+        
+        <p style="text-align: center; color: #6c757d; margin-bottom: 30px; margin-top: 20px;">
+            This panel is for adding new knowledge to the AI's database.
+        </p>
+        
+        <div id="login-section" class="login-section">
+            <h2>Unlock Panel</h2>
+            <p style="margin-bottom: 10px;">Enter Admin Password:</p>
+            <input type="password" id="admin-password" placeholder="Admin Password">
+            <button onclick="adminLogin()">Unlock Panel</button>
+        </div>
+
+        <div id="learning-section" class="hidden">
+            <h2 style="margin-bottom: 20px;">Teach New Content (Text and Image)</h2>
+            
+            <p style="margin-bottom: 10px;">Provide specific text (formulas, notes, or solutions) to expand the AI's knowledge base:</p>
+            <textarea id="text-input" rows="6" placeholder="e.g., According to Newton's Second Law, F = ma. This concept is vital for solving dynamics problems."></textarea>
+            <button onclick="learnContent('text')" style="background-color: var(--success-color);">Teach with Text</button>
+            
+            <hr style="margin: 20px 0; border-top: 1px solid #eee;">
+            
+            <p style="margin-bottom: 10px; font-weight: 600;">Or, Upload an Image:</p>
+            <input type="file" id="image-file" accept="image/*">
+            <button onclick="learnContent('image')" style="background-color: var(--primary-color);">Teach with Image</button>
+
+        </div>
+
+        <div id="message-box"></div>
+
+    </div>
+
+    <script>
+        function showMessage(message, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.innerText = message;
+            messageBox.className = isError ? 'error' : 'success';
+        }
+        
+        function goToChat() {
+            window.location.href = "/"; 
+        }
+
+        async function adminLogin() {
+            const password = document.getElementById('admin-password').value;
+            const messageBox = document.getElementById('message-box');
+            
+            if (!password) {
+                showMessage("Please enter the password.", true);
+                return;
+            }
+
+            messageBox.innerText = "Verifying...";
+            messageBox.className = 'success';
+
+            try {
+                const response = await fetch('/admin_login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message);
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('learning-section').classList.remove('hidden');
+                    // Retain the password in the field so it can be sent with 'learn' requests
+                } else {
+                    document.getElementById('admin-password').value = '';
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage(`Network Error: Could not contact the server. ${error}`, true);
+            }
+        }
+
+        async function learnContent(type) {
+            const passwordInput = document.getElementById('admin-password');
+            const enteredPassword = passwordInput.value; 
+            const messageBox = document.getElementById('message-box');
+            
+            // Re-check authentication state
+            if (!enteredPassword || document.getElementById('login-section').classList.contains('hidden') === false) {
+                 // Check if the login form is still visible, meaning no successful login
+                showMessage("Authentication state lost. Please log in again.", true);
+                return;
+            }
+
+            showMessage("Teaching AI... (Sending data)");
+            messageBox.className = 'success'; 
+
+            const formData = new FormData();
+            // Send the password again to authenticate the 'learn' endpoint securely on the server
+            formData.append('admin_pass', enteredPassword); 
+
+            if (type === 'text') {
+                const textInput = document.getElementById('text-input').value;
+                if (!textInput.trim()) {
+                    showMessage("Text input cannot be empty.", true);
+                    return;
+                }
+                formData.append('text_input', textInput);
+            } else if (type === 'image') {
+                const imageFile = document.getElementById('image-file').files[0];
+                if (!imageFile) {
+                    showMessage("Please select an image file.", true);
+                    return;
+                }
+                formData.append('file', imageFile); // 'file' name matches server.py
+            }
+
+            try {
+                const response = await fetch('/learn', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(`Success! Server Message: ${data.message}`);
+                    if (type === 'text') document.getElementById('text-input').value = ''; 
+                    else if (type === 'image') document.getElementById('image-file').value = '';
+                } else {
+                    showMessage(`Error: ${data.error || "Unknown problem"}`, true);
+                }
+            } catch (error) {
+                showMessage(`Network Error: Could not contact the server. ${error}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,52 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>A21-GPT — AI Assistant</title>
-  <link rel="stylesheet" href="static/css/style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI HSC Math & Physics Tutor</title>
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
-  <header class="nav">
-    <div class="brand">
-      <img src="static/assets/logo.svg" alt="A21-GPT" class="logo"/>
-      <span class="brand-title">A21‑GPT</span>
+    
+    <div class="landing-container" id="landing-screen">
+        <header class="landing-header">
+            <p class="landing-greeting">Hi ARAF</p>
+            <h1 class="landing-main-title">What can I help with?</h1>
+            <p class="landing-subtitle">Made by @avoid_araf_</p>
+            
+            <button class="server-login-btn top-right-btn" onclick="goToAdminPanel()">
+                <span class="diamond">&diams;</span> ServerLogin
+            </button>
+            
+            <div class="landing-action-buttons">
+                <button class="landing-prompt-button" onclick="showChatScreen()">
+                    <span class="prompt-icon">🤖</span> Ask A21-GPT
+                </button>
+                </div>
+            
+        </header>
+        
+        <div class="landing-footer">
+            </div>
     </div>
-    <nav class="nav-links">
-      <a href="chat.html" class="nav-link">Chat</a>
-      <a href="admin.html" class="nav-link">Admin</a>
-      <a href="server-login.html" class="nav-link btn-outline">Server Login</a>
-    </nav>
-  </header>
 
-  <main class="hero">
-    <div class="glow"></div>
-    <div class="glow2"></div>
 
-    <div class="hero-card">
-      <h1 class="hero-title">A21‑GPT</h1>
-      <p class="hero-sub">World-class AI assistant for students and creators. Fast answers in Bangla & English.</p>
+    <div class="chat-container hidden" id="chat-screen">
+        <header class="chat-header">
+            <h1>🎓 Ai HSC Helper by @avoid_araf_</h1>
+            <button class="back-to-landing" onclick="showLandingScreen()">&larr; Back</button>
+        </header>
 
-      <div class="hero-actions">
-        <a class="btn-primary" href="chat.html">Start Chat</a>
-        <a class="btn-ghost" href="server-login.html">Server Login</a>
-      </div>
+        <div id="chat-history" class="chat-history">
+            <div class="message ai-message initial-message">
+                <p>Hello! I am your AI HSC Math & Physics Tutor. Ask me any question, and I will provide a detailed solution in Bengali. How can I help you today?</p>
+                <span class="timestamp">Just now</span>
+            </div>
+            </div>
 
-      <div class="features">
-        <div class="feature">
-          <h4>Premium UI</h4>
-          <p>Glassmorphism, neon accents, and smooth animations — production-ready.</p>
+        <div class="chat-input-area">
+            <textarea id="question-input" rows="1" placeholder="Type your question here... (e.g., Calculate the velocity of a projectile at maximum height)"></textarea>
+            <button onclick="askAI()">Send</button>
         </div>
-        <div class="feature">
-          <h4>Chat Integration</h4>
-          <p>Chat UI connects to your backend at <code>/ask</code> using POST JSON.</p>
-        </div>
-      </div>
     </div>
-  </main>
 
-  <footer class="site-footer">
-    <div>Made with ♥ by @avoid_araf_ • A21‑GPT</div>
-  </footer>
+    <script>
+        const landingScreen = document.getElementById('landing-screen');
+        const chatScreen = document.getElementById('chat-screen');
+        const chatHistory = document.getElementById('chat-history');
+        const questionInput = document.getElementById('question-input');
+        const sendButton = document.querySelector('.chat-input-area button');
+
+        // --- SCREEN MANAGEMENT FUNCTIONS ---
+        function showChatScreen() {
+            landingScreen.classList.add('hidden');
+            chatScreen.classList.remove('hidden');
+            document.body.style.backgroundColor = 'var(--background-color)'; 
+            questionInput.focus();
+        }
+
+        function showLandingScreen() {
+            landingScreen.classList.remove('hidden');
+            chatScreen.classList.add('hidden');
+            document.body.style.backgroundColor = 'var(--dark-bg)'; 
+        }
+        
+        function goToAdminPanel() {
+            window.location.href = "/admin";
+        }
+        
+        // --- Initialize correct body background on load ---
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Start with the dark background matching the landing screen
+            document.body.style.backgroundColor = 'var(--dark-bg)'; 
+        });
+
+
+        // --- CHAT LOGIC FUNCTIONS ---
+        function appendMessage(text, isUser) {
+            const messageDiv = document.createElement('div');
+            // Basic formatting for newlines
+            const formattedText = text.replace(/\n/g, '<br>'); 
+            
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            // Use current time
+            messageDiv.innerHTML = `<p>${formattedText}</p><span class="timestamp">${new Date().toLocaleTimeString()}</span>`;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        async function askAI() {
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            appendMessage(question, true);
+            questionInput.value = ''; 
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-message';
+            loadingDiv.className = 'message ai-message loading';
+            loadingDiv.innerHTML = '<p>Processing solution... <span class="loading-dots"></span></p>';
+            chatHistory.appendChild(loadingDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            questionInput.disabled = true;
+            sendButton.disabled = true;
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: question })
+                });
+
+                const data = await response.json();
+
+                const loading = document.getElementById('loading-message');
+                if (loading) chatHistory.removeChild(loading);
+
+                if (response.ok) {
+                    appendMessage(data.answer, false);
+                } else {
+                    appendMessage(`Error: ${data.error || "Unknown problem"}. Please check API Key configuration.`, false);
+                }
+
+            } catch (error) {
+                const loading = document.getElementById('loading-message');
+                if (loading) chatHistory.removeChild(loading);
+                appendMessage(`Network Error: Could not contact the server. ${error}`, false);
+            } finally {
+                questionInput.disabled = false;
+                sendButton.disabled = false;
+                questionInput.focus();
+            }
+        }
+        
+        questionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); 
+                askAI();
+            }
+        });
+
+        // Auto-resize textarea
+        questionInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+    </script>
 </body>
 </html>
