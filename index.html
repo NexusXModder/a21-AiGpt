@@ -14,7 +14,7 @@
             <h1 class="landing-main-title">What can I help with?</h1>
             <p class="landing-subtitle">Made by @avoid_araf_</p>
             
-            <button class="server-login-btn" onclick="goToAdminPanel()">
+            <button class="server-login-btn top-right-btn" onclick="goToAdminPanel()">
                 <span class="diamond">&diams;</span> ServerLogin
             </button>
             
@@ -22,8 +22,7 @@
                 <button class="landing-prompt-button" onclick="showChatScreen()">
                     <span class="prompt-icon">🤖</span> Ask A21-GPT
                 </button>
-                </div>
-            
+            </div>
         </header>
         
         <div class="landing-footer">
@@ -39,101 +38,99 @@
 
         <div id="chat-history" class="chat-history">
             <div class="message ai-message initial-message">
-                <p>Hello Araf! I am your AI HSC Math & Physics Tutor. Ask me any conceptual question or problem (in English or Bangla), and I'll provide a detailed solution in Bengali (Bangla). Let's start learning!</p>
+                <p>Hello! I am your **HSC Math and Physics Tutor**. আমি বাংলাদেশ শিক্ষা বোর্ডের সিলেবাস অনুযায়ী আপনাকে সাহায্য করতে প্রস্তুত। আপনার প্রশ্নটি বাংলা বা ইংরেজিতে টাইপ করুন।</p>
             </div>
-        </div>
+            </div>
 
         <div class="chat-input-area">
-            <textarea id="question-input" placeholder="Enter your math or physics question here... (Solution will be provided in Bengali)" rows="1"></textarea>
+            <textarea id="question-input" placeholder="আপনার প্রশ্ন টাইপ করুন... (Shift+Enter for new line)" rows="1"></textarea>
             <button id="send-button" onclick="askAI()">Send</button>
         </div>
     </div>
 
-
     <script>
-        const landingScreen = document.getElementById('landing-screen');
-        const chatScreen = document.getElementById('chat-screen');
-        const chatHistory = document.getElementById('chat-history');
-        const questionInput = document.getElementById('question-input');
-        const sendButton = document.getElementById('send-button');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load state from session storage
+            if (sessionStorage.getItem('isChatActive') === 'true') {
+                showChatScreen(false);
+            } else {
+                showLandingScreen(false);
+            }
+        });
 
-        function showChatScreen() {
-            landingScreen.classList.add('hidden');
-            chatScreen.classList.remove('hidden');
-            questionInput.focus();
+        function showLandingScreen(saveState = true) {
+            document.getElementById('landing-screen').classList.remove('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+            if (saveState) sessionStorage.setItem('isChatActive', 'false');
         }
 
-        function showLandingScreen() {
-            chatScreen.classList.add('hidden');
-            landingScreen.classList.remove('hidden');
+        function showChatScreen(saveState = true) {
+            document.getElementById('landing-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.remove('hidden');
+            if (saveState) sessionStorage.setItem('isChatActive', 'true');
+            document.getElementById('question-input').focus();
         }
 
         function goToAdminPanel() {
-            window.location.href = "/admin"; 
+            window.location.href = '/admin';
         }
 
-
-        // --- CHAT LOGIC FUNCTIONS (Updated for better formatting) ---
-        function appendMessage(text, isUser) {
+        function appendMessage(content, isUser) {
+            const chatHistory = document.getElementById('chat-history');
             const messageDiv = document.createElement('div');
-            
             messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-            
-            if (isUser) {
-                // User messages remain simple
-                messageDiv.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p><span class="timestamp">${new Date().toLocaleTimeString()}</span>`;
-            } else {
-                // **AI MESSAGE FORMATTING FIX**
-                let formattedText = text;
-                
-                // 1. Convert double asterisks (**) to strong tags (bolding for headings/important words)
-                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                
-                // 2. Convert LaTeX/Math (between $ and $) to a visible span element 
-                //    (This uses the .math-equation class added to style.css)
-                formattedText = formattedText.replace(/\$([^\$]+)\$/g, '<span class="math-equation">$1</span>');
-                
-                // 3. Convert single asterisks (*) to list items
-                formattedText = formattedText.replace(/^\* (.*)/gm, '<li>$1</li>');
-                
-                // 4. Wrap list items in <ul> tags (simple logic)
-                if (formattedText.includes('<li>')) {
-                    // Check if it's already wrapped (to prevent double wrapping)
-                    if (!formattedText.includes('<ul>')) {
-                        formattedText = '<ul>' + formattedText + '</ul>';
-                    }
-                }
-                
-                // 5. Replace new lines with breaks for general paragraph structure
-                formattedText = formattedText.replace(/\n/g, '<br>');
-                
-                // 6. Wrap the final text in a paragraph tag (if not a list)
-                if (!formattedText.startsWith('<ul>')) {
-                     formattedText = `<p>${formattedText}</p>`;
-                }
-                
-                messageDiv.innerHTML = `${formattedText}<span class="timestamp">${new Date().toLocaleTimeString()}</span>`;
+
+            // Function to detect and wrap LaTeX
+            function formatContent(text) {
+                // Regex to find content enclosed by $...$
+                return text.replace(/\$(.*?)\$/g, (match, p1) => {
+                    // p1 is the content inside the dollar signs
+                    return `<span class="math-equation">${p1.trim()}</span>`;
+                });
             }
-            
+
+            // The content is passed as plain text, we wrap it in <p> and then format math
+            const formattedHTML = formatContent(content);
+            messageDiv.innerHTML = `<p>${formattedHTML}</p>`;
+
+            // Add timestamp (optional, can be refined)
+            // const now = new Date();
+            // messageDiv.innerHTML += `<span class="timestamp">${now.toLocaleTimeString()}</span>`;
+
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to bottom
+        }
+
+        function appendLoadingMessage() {
+            const chatHistory = document.getElementById('chat-history');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message loading-message';
+            messageDiv.id = 'loading-message';
+            messageDiv.innerHTML = `<p class="loading-dots">Thinking</p>`;
             chatHistory.appendChild(messageDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+            return messageDiv;
         }
 
+
         async function askAI() {
+            const questionInput = document.getElementById('question-input');
+            const sendButton = document.getElementById('send-button');
             const question = questionInput.value.trim();
+
             if (!question) return;
 
-            // Display user message
-            appendMessage(question, true);
-            questionInput.value = ''; // Clear input field
-
-            // Show loading message
-            appendMessage('<span class="loading-dots">Thinking...</span>', false);
-
+            // 1. Disable input and append user message
+            questionInput.value = '';
+            questionInput.style.height = 'auto'; // Reset height
             questionInput.disabled = true;
             sendButton.disabled = true;
+            appendMessage(question, true);
+            const loadingMessage = appendLoadingMessage();
+
 
             try {
+                // 2. Send request to server
                 const response = await fetch('/ask', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -142,9 +139,8 @@
 
                 const data = await response.json();
 
-                // Remove loading message
-                const loading = document.querySelector('.loading-dots').parentElement.parentElement;
-                if (loading) chatHistory.removeChild(loading);
+                // 3. Remove loading message
+                if (loadingMessage) loadingMessage.remove();
 
                 if (response.ok) {
                     appendMessage(data.answer, false);
@@ -153,18 +149,18 @@
                 }
 
             } catch (error) {
-                // Remove loading message
-                const loading = document.querySelector('.loading-dots').parentElement.parentElement;
-                if (loading) chatHistory.removeChild(loading);
+                if (loadingMessage) loadingMessage.remove();
                 appendMessage(`Network Error: Could not contact the server. ${error}`, false);
             } finally {
+                // 4. Re-enable input
                 questionInput.disabled = false;
                 sendButton.disabled = false;
                 questionInput.focus();
             }
         }
         
-        questionInput.addEventListener('keypress', function(e) {
+        // Handle Enter key for sending (but allow Shift+Enter for new line)
+        document.getElementById('question-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault(); 
                 askAI();
@@ -172,7 +168,7 @@
         });
 
         // Auto-resize textarea
-        questionInput.addEventListener('input', function() {
+        document.getElementById('question-input').addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
         });
