@@ -39,58 +39,82 @@
 
         <div id="chat-history" class="chat-history">
             <div class="message ai-message initial-message">
-                <p>Hello! I am your AI HSC Math & Physics Tutor. Ask me any question, and I will provide a detailed solution in Bengali. How can I help you today?</p>
-                <span class="timestamp">Just now</span>
+                <p>Hello Araf! I am your AI HSC Math & Physics Tutor. Ask me any conceptual question or problem (in English or Bangla), and I'll provide a detailed solution in Bengali (Bangla). Let's start learning!</p>
             </div>
-            </div>
+        </div>
 
         <div class="chat-input-area">
-            <textarea id="question-input" rows="1" placeholder="Type your question here... (e.g., Calculate the velocity of a projectile at maximum height)"></textarea>
-            <button onclick="askAI()">Send</button>
+            <textarea id="question-input" placeholder="Enter your math or physics question here... (Solution will be provided in Bengali)" rows="1"></textarea>
+            <button id="send-button" onclick="askAI()">Send</button>
         </div>
     </div>
+
 
     <script>
         const landingScreen = document.getElementById('landing-screen');
         const chatScreen = document.getElementById('chat-screen');
         const chatHistory = document.getElementById('chat-history');
         const questionInput = document.getElementById('question-input');
-        const sendButton = document.querySelector('.chat-input-area button');
+        const sendButton = document.getElementById('send-button');
 
-        // --- SCREEN MANAGEMENT FUNCTIONS ---
         function showChatScreen() {
             landingScreen.classList.add('hidden');
             chatScreen.classList.remove('hidden');
-            document.body.style.backgroundColor = 'var(--background-color)'; 
             questionInput.focus();
         }
 
         function showLandingScreen() {
-            landingScreen.classList.remove('hidden');
             chatScreen.classList.add('hidden');
-            document.body.style.backgroundColor = 'var(--dark-bg)'; 
+            landingScreen.classList.remove('hidden');
         }
-        
+
         function goToAdminPanel() {
-            window.location.href = "/admin";
+            window.location.href = "/admin"; 
         }
-        
-        // --- Initialize correct body background on load ---
-        document.addEventListener('DOMContentLoaded', (event) => {
-            // Start with the dark background matching the landing screen
-            document.body.style.backgroundColor = 'var(--dark-bg)'; 
-        });
 
 
-        // --- CHAT LOGIC FUNCTIONS ---
+        // --- CHAT LOGIC FUNCTIONS (Updated for better formatting) ---
         function appendMessage(text, isUser) {
             const messageDiv = document.createElement('div');
-            // Basic formatting for newlines
-            const formattedText = text.replace(/\n/g, '<br>'); 
             
             messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-            // Use current time
-            messageDiv.innerHTML = `<p>${formattedText}</p><span class="timestamp">${new Date().toLocaleTimeString()}</span>`;
+            
+            if (isUser) {
+                // User messages remain simple
+                messageDiv.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p><span class="timestamp">${new Date().toLocaleTimeString()}</span>`;
+            } else {
+                // **AI MESSAGE FORMATTING FIX**
+                let formattedText = text;
+                
+                // 1. Convert double asterisks (**) to strong tags (bolding for headings/important words)
+                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // 2. Convert LaTeX/Math (between $ and $) to a visible span element 
+                //    (This uses the .math-equation class added to style.css)
+                formattedText = formattedText.replace(/\$([^\$]+)\$/g, '<span class="math-equation">$1</span>');
+                
+                // 3. Convert single asterisks (*) to list items
+                formattedText = formattedText.replace(/^\* (.*)/gm, '<li>$1</li>');
+                
+                // 4. Wrap list items in <ul> tags (simple logic)
+                if (formattedText.includes('<li>')) {
+                    // Check if it's already wrapped (to prevent double wrapping)
+                    if (!formattedText.includes('<ul>')) {
+                        formattedText = '<ul>' + formattedText + '</ul>';
+                    }
+                }
+                
+                // 5. Replace new lines with breaks for general paragraph structure
+                formattedText = formattedText.replace(/\n/g, '<br>');
+                
+                // 6. Wrap the final text in a paragraph tag (if not a list)
+                if (!formattedText.startsWith('<ul>')) {
+                     formattedText = `<p>${formattedText}</p>`;
+                }
+                
+                messageDiv.innerHTML = `${formattedText}<span class="timestamp">${new Date().toLocaleTimeString()}</span>`;
+            }
+            
             chatHistory.appendChild(messageDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
@@ -99,16 +123,13 @@
             const question = questionInput.value.trim();
             if (!question) return;
 
+            // Display user message
             appendMessage(question, true);
-            questionInput.value = ''; 
+            questionInput.value = ''; // Clear input field
 
-            const loadingDiv = document.createElement('div');
-            loadingDiv.id = 'loading-message';
-            loadingDiv.className = 'message ai-message loading';
-            loadingDiv.innerHTML = '<p>Processing solution... <span class="loading-dots"></span></p>';
-            chatHistory.appendChild(loadingDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-            
+            // Show loading message
+            appendMessage('<span class="loading-dots">Thinking...</span>', false);
+
             questionInput.disabled = true;
             sendButton.disabled = true;
 
@@ -121,7 +142,8 @@
 
                 const data = await response.json();
 
-                const loading = document.getElementById('loading-message');
+                // Remove loading message
+                const loading = document.querySelector('.loading-dots').parentElement.parentElement;
                 if (loading) chatHistory.removeChild(loading);
 
                 if (response.ok) {
@@ -131,7 +153,8 @@
                 }
 
             } catch (error) {
-                const loading = document.getElementById('loading-message');
+                // Remove loading message
+                const loading = document.querySelector('.loading-dots').parentElement.parentElement;
                 if (loading) chatHistory.removeChild(loading);
                 appendMessage(`Network Error: Could not contact the server. ${error}`, false);
             } finally {

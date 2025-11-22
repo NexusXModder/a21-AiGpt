@@ -30,156 +30,109 @@ body {
     padding: 0; 
     min-height: 100vh;
     transition: background-color 0.3s;
+    background-color: var(--background-color); /* Apply base background */
 }
 
 a {
     color: var(--primary-color);
     text-decoration: none;
-    transition: color 0.3s;
+    transition: color 0.2s;
 }
 
 a:hover {
     color: var(--secondary-color);
 }
 
-/* --- Utilities (Crucial for admin.html security) --- */
 .hidden {
     display: none !important;
 }
 
-
-/* --- Container (Used for Admin Page) --- */
-.container {
-    max-width: 600px;
-    margin: 40px auto;
-    background-color: var(--card-background);
-    padding: 45px; 
-    border-radius: 16px;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-    border-top: 5px solid var(--secondary-color);
-}
-.admin-panel-container {
-    min-height: auto; 
-}
-
-/* Default button style override (needed for admin page) */
-button {
-    padding: 12px 25px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    transition: background-color 0.3s, box-shadow 0.3s;
-    width: 100%; /* Default width for admin buttons */
-    display: block;
-    margin-top: 10px; /* Added spacing */
-}
-
-/* Admin Specific Overrides */
-.login-section button {
-    background-color: var(--secondary-color);
-}
-#learning-section button {
-    background-color: var(--success-color);
-}
-#learning-section button:nth-of-type(2) { /* Targeting the 'Teach with Image' button */
-    background-color: var(--primary-color);
-}
-
-/* --- Input Styles --- */
-textarea, input[type="password"], input[type="file"], input[type="text"] {
-    width: 100%;
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid #CED4DA;
-    border-radius: 8px;
-    font-size: 1em;
-    transition: all 0.3s;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-textarea { resize: vertical; min-height: 100px; }
-
-
 /* ===================================================================
-LANDING UI STYLES (Video Aesthetic)
-=================================================================== 
-*/
+LANDING PAGE STYLES
+=================================================================== */
 
 .landing-container {
     background-color: var(--dark-bg);
     color: var(--dark-text);
     min-height: 100vh;
-    width: 100%; 
     display: flex;
     flex-direction: column;
-    padding: 40px 20px 0; 
-    position: absolute; 
-    top: 0;
-    left: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
 
 .landing-header {
-    width: 100%;
-    max-width: 450px; 
-    margin: 0 auto;
-    text-align: left;
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+    max-width: 500px;
 }
 
 .landing-greeting {
+    color: var(--secondary-color);
     font-size: 1.2em;
     font-weight: 500;
     margin-bottom: 5px;
-    color: var(--dark-subtitle);
 }
 
 .landing-main-title {
-    color: var(--dark-text);
-    text-align: left;
-    font-size: 2.2em;
-    font-weight: 600;
-    margin-bottom: 30px;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    font-weight: 800;
 }
 
 .landing-subtitle {
-    color: #555555; 
-    font-size: 0.8em;
-    margin-top: 5px;
-    margin-bottom: 20px;
+    color: var(--dark-subtitle);
+    font-size: 0.9em;
+    margin-bottom: 30px;
 }
 
-.server-login-btn.top-right-btn {
+.top-right-btn {
     position: absolute;
-    top: 40px;
-    right: 20px;
-    width: auto; 
-    background-color: #3b3b4d; 
+    top: 10px;
+    right: -100px; /* Adjust this value if needed */
+}
+
+.server-login-btn {
+    background-color: var(--dark-action-bg);
+    color: var(--dark-text);
     padding: 8px 15px;
-    border-radius: 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.server-login-btn:hover {
+    background-color: var(--dark-btn-hover);
+}
+
+.diamond {
+    margin-right: 5px;
+    color: var(--secondary-color);
 }
 
 .landing-action-buttons {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    margin-top: 20px;
-    width: 100%;
+    margin-top: 30px;
 }
 
 .landing-prompt-button {
-    width: auto;
-    text-align: left;
-    padding: 15px 20px;
     background-color: var(--dark-action-bg);
     color: var(--dark-text);
-    font-size: 1em;
-    font-weight: 500;
-    border-radius: 18px; 
+    padding: 15px 25px;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 600;
+    border-radius: 18px; /* High radius like the video */
     display: flex;
     align-items: center;
+    justify-content: center;
     transition: background-color 0.2s;
 }
 
@@ -194,9 +147,95 @@ LANDING UI STYLES (Video Aesthetic)
 
 
 /* ===================================================================
+ADMIN PANEL STYLES
+=================================================================== */
+.admin-panel-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: var(--card-background);
+    border-radius: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.login-section input,
+.admin-panel-container textarea,
+.admin-panel-container input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    resize: vertical;
+}
+
+.admin-panel-container button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.admin-panel-container button:not(.back-btn) {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.admin-panel-container button:hover:not(.back-btn) {
+    background-color: #005f93;
+}
+
+#message-box {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    display: none; /* Hidden by default */
+}
+
+#message-box.success {
+    background-color: #d4edda;
+    color: var(--success-color);
+    display: block;
+}
+
+#message-box.error {
+    background-color: #f8d7da;
+    color: var(--error-color);
+    display: block;
+}
+
+/* ADMIN specific styles for teach.html buttons */
+.admin-panel-container button[onclick*="learnContent('text')"] {
+    background-color: var(--success-color);
+}
+.admin-panel-container button[onclick*="learnContent('text')"]:hover {
+    background-color: #218838;
+}
+
+.admin-panel-container button[onclick*="learnContent('image')"] {
+    background-color: var(--secondary-color);
+}
+.admin-panel-container button[onclick*="learnContent('image')"]:hover {
+    background-color: #009ac2;
+}
+
+
+/* ===================================================================
 CHAT-SPECIFIC STYLES 
-=================================================================== 
-*/
+=================================================================== */
 
 .chat-container {
     max-width: 800px;
@@ -215,7 +254,7 @@ CHAT-SPECIFIC STYLES
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 30px;
+    padding: 15px 20px;
     border-bottom: 1px solid #eee;
     background-color: var(--primary-color);
     color: white;
@@ -223,63 +262,81 @@ CHAT-SPECIFIC STYLES
 }
 
 .chat-header h1 {
-    color: white;
-    margin: 0;
-    text-align: left;
-    font-size: 1.5em; 
+    font-size: 1.2em;
+    font-weight: 700;
 }
 
 .back-to-landing {
-    background-color: #3b3b4d;
+    background: none;
+    border: 1px solid white;
     color: white;
     padding: 5px 10px;
-    font-size: 0.8em;
-    border-radius: 15px;
-    font-weight: normal;
-    width: auto; 
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.back-to-landing:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .chat-history {
     flex-grow: 1;
+    padding: 20px;
     overflow-y: auto;
-    padding: 20px 30px;
     background-color: var(--background-color);
 }
 
 .chat-input-area {
-    padding: 15px 30px;
-    border-top: 1px solid #eee;
     display: flex;
-    align-items: flex-end;
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
     background-color: var(--card-background);
 }
 
 .chat-input-area textarea {
     flex-grow: 1;
-    margin-bottom: 0;
-    border-radius: 8px 0 0 8px;
-    padding: 12px;
-    min-height: 48px;
-    max-height: 150px;
-}
-.chat-input-area button {
-    width: auto;
-    padding: 12px 20px;
-    border-radius: 0 8px 8px 0;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    resize: none;
     font-size: 1em;
-    margin-top: 0;
+    margin-right: 10px;
+    overflow-y: hidden;
+    line-height: 1.5;
 }
 
-/* Message Styles */
+.chat-input-area button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.chat-input-area button:hover:not(:disabled) {
+    background-color: #005f93;
+}
+
+.chat-input-area button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* --- Message Bubbles --- */
+
 .message {
-    max-width: 80%;
-    margin-bottom: 15px;
     padding: 12px 18px;
-    border-radius: 18px;
-    line-height: 1.4;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    max-width: 85%;
     position: relative;
-    font-size: 0.95em;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .user-message {
@@ -289,17 +346,77 @@ CHAT-SPECIFIC STYLES
     border-bottom-right-radius: 4px;
 }
 
+/* ===================================================================
+SOLUTION DISPLAY STYLES (NEW/FIXED)
+=================================================================== */
+
+/* Style for the Solution area in the chat screen */
 .ai-message {
-    background-color: var(--card-background);
+    background-color: #f0f8ff; /* Lightest Blue/White */
     color: var(--text-color);
-    margin-right: auto;
-    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 15px 20px;
+    max-width: 90%;
+    align-self: flex-start; /* AI messages start from the left */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+    line-height: 1.8; /* Increased line height for better readability */
     border-bottom-left-radius: 4px;
+}
+
+/* Style for the main solution text inside the message */
+.ai-message p, .ai-message li {
+    font-size: 1.1em; /* Increased font size for easy reading (like a guidebook) */
+    white-space: pre-wrap; /* Ensures line breaks and spaces from AI response are preserved */
+    word-wrap: break-word;
+}
+
+/* Style for Math/LaTeX content within the solution */
+.ai-message .math-equation {
+    display: block;
+    text-align: center;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #e9ecef; /* Light gray background for equations */
+    border-radius: 8px;
+    font-family: 'Courier New', monospace; /* Monospaced font for code/math clarity */
+    font-size: 1.2em; /* Slightly larger font for equations */
+    overflow-x: auto; /* Handles long equations */
+    color: var(--primary-color);
+}
+
+/* Bolding for **headings** or **important terms** */
+.ai-message strong {
+    color: #005f93; /* Slightly darker blue than primary */
+    font-weight: 700;
+}
+
+/* List styles for answers */
+.ai-message ul {
+    list-style-type: none; /* Remove default dots */
+    padding-left: 0;
+    margin-top: 10px;
+}
+
+.ai-message li {
+    margin-bottom: 5px;
+    padding-left: 1.5em; /* Space for custom bullet */
+    position: relative;
+}
+
+.ai-message li::before {
+    content: "•"; /* Custom bullet point */
+    color: var(--secondary-color);
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
 }
 
 .initial-message {
     background-color: #EBF8FF;
     border-color: var(--secondary-color);
+    color: var(--text-color);
 }
 
 .message p {
@@ -328,6 +445,10 @@ CHAT-SPECIFIC STYLES
   }
 }
 
+.loading-dots {
+    display: inline-block;
+}
+
 .loading-dots:after {
     content: '.';
     animation: dot-flashing 1s infinite steps(1, start);
@@ -341,29 +462,4 @@ CHAT-SPECIFIC STYLES
     display: inline-block;
     width: 0; 
     overflow: hidden;
-}
-
-.loading p {
-    font-style: italic;
-    color: #6c757d;
-}
-
-/* Message box for admin panel */
-#message-box {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 8px;
-    font-weight: 600;
-}
-
-.success {
-    background-color: #D4EDDA;
-    border: 1px solid var(--success-color);
-    color: #155724;
-}
-
-.error {
-    background-color: #F8D7DA;
-    border: 1px solid var(--error-color);
-    color: #721C24;
 }
