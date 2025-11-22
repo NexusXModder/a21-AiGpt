@@ -3,8 +3,8 @@
 :root {
     --primary-color: #0077B6; /* Deep Blue (for branding) */
     --secondary-color: #00B4D8; /* Light Blue/Cyan (for accents) */
-    --background-color: #F8F9FA; /* Lightest Gray - USED FOR CHAT SCREEN BACKGROUND */
-    --card-background: #FFFFFF; /* White for content areas */
+    --background-color: #F8F9FA; /* Lightest Gray - ORIGINAL CHAT BG */
+    --card-background: #FFFFFF; /* White for content areas - ORIGINAL CHAT INPUT BG */
     --text-color: #343A40; /* Dark Gray for main text */
     --success-color: #28A745; /* Green for success messages */
     --error-color: #DC3545; /* Red for errors/notes */
@@ -14,6 +14,7 @@
     --dark-action-bg: #2C2C2C; /* Background for the large buttons */
     --dark-btn-hover: #3A3A3A;
     --dark-subtitle: #AAAAAA;
+    --dark-chat-header: #1C1C1C; /* Slightly lighter black for distinction */
 }
 
 /* --- Base Styles --- */
@@ -88,13 +89,12 @@ LANDING PAGE STYLES
     margin-bottom: 30px;
 }
 
-.top-right-btn {
-    position: absolute;
-    top: 10px;
-    right: -100px; /* Adjust this value if needed */
-}
-
+/* FIX: Simplified button positioning to center the button in the header */
 .server-login-btn {
+    position: absolute;
+    top: -20px; /* Adjusted to be slightly above content */
+    left: 50%;
+    transform: translateX(-50%);
     background-color: var(--dark-action-bg);
     color: var(--dark-text);
     padding: 8px 15px;
@@ -147,7 +147,7 @@ LANDING PAGE STYLES
 
 
 /* ===================================================================
-ADMIN PANEL STYLES
+ADMIN PANEL STYLES (Kept Light for Clarity in Admin Section)
 =================================================================== */
 .admin-panel-container {
     max-width: 600px;
@@ -234,13 +234,13 @@ ADMIN PANEL STYLES
 
 
 /* ===================================================================
-CHAT-SPECIFIC STYLES 
+CHAT-SPECIFIC STYLES (MODIFIED FOR DARK THEME UI)
 =================================================================== */
 
 .chat-container {
     max-width: 800px;
     margin: 0 auto; 
-    background-color: var(--card-background);
+    background-color: var(--dark-bg); /* NOW DARK */
     border-radius: 16px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -248,6 +248,7 @@ CHAT-SPECIFIC STYLES
     height: 100vh;
     min-height: 550px;
     overflow: hidden;
+    color: var(--dark-text); /* Ensure text is readable */
 }
 
 .chat-header {
@@ -255,9 +256,9 @@ CHAT-SPECIFIC STYLES
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    border-bottom: 1px solid #eee;
-    background-color: var(--primary-color);
-    color: white;
+    border-bottom: 1px solid #333; /* Darker border */
+    background-color: var(--dark-chat-header); /* Dark Header */
+    color: var(--dark-text);
     border-radius: 16px 16px 0 0;
 }
 
@@ -268,8 +269,8 @@ CHAT-SPECIFIC STYLES
 
 .back-to-landing {
     background: none;
-    border: 1px solid white;
-    color: white;
+    border: 1px solid var(--dark-subtitle); /* Lighter border */
+    color: var(--dark-subtitle);
     padding: 5px 10px;
     border-radius: 6px;
     cursor: pointer;
@@ -285,31 +286,33 @@ CHAT-SPECIFIC STYLES
     flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
-    background-color: var(--background-color);
+    background-color: var(--dark-bg); /* NOW DARK */
 }
 
 .chat-input-area {
     display: flex;
     padding: 15px 20px;
-    border-top: 1px solid #eee;
-    background-color: var(--card-background);
+    border-top: 1px solid #333; /* Darker border */
+    background-color: var(--dark-chat-header); /* Dark Input Area BG */
 }
 
 .chat-input-area textarea {
     flex-grow: 1;
     padding: 10px 15px;
-    border: 1px solid #ccc;
+    border: 1px solid #555; /* Darker border on input */
     border-radius: 20px;
     resize: none;
     font-size: 1em;
     margin-right: 10px;
     overflow-y: hidden;
     line-height: 1.5;
+    background-color: #333; /* Dark Input Field BG */
+    color: var(--dark-text);
 }
 
 .chat-input-area button {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: var(--secondary-color); /* Use light blue for SEND button */
+    color: var(--dark-text);
     border: none;
     padding: 10px 15px;
     border-radius: 20px;
@@ -320,11 +323,11 @@ CHAT-SPECIFIC STYLES
 }
 
 .chat-input-area button:hover:not(:disabled) {
-    background-color: #005f93;
+    background-color: #008fa3;
 }
 
 .chat-input-area button:disabled {
-    background-color: #ccc;
+    background-color: #555;
     cursor: not-allowed;
 }
 
@@ -336,76 +339,72 @@ CHAT-SPECIFIC STYLES
     border-radius: 12px;
     max-width: 85%;
     position: relative;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Darker shadow for dark mode */
 }
 
 .user-message {
     background-color: var(--secondary-color);
-    color: white;
+    color: var(--dark-text);
     margin-left: auto;
     border-bottom-right-radius: 4px;
 }
 
 /* ===================================================================
-SOLUTION DISPLAY STYLES (NEW/FIXED)
+SOLUTION DISPLAY STYLES (Dark Mode Adaptation)
 =================================================================== */
 
-/* Style for the Solution area in the chat screen */
 .ai-message {
-    background-color: #f0f8ff; /* Lightest Blue/White */
-    color: var(--text-color);
+    background-color: var(--dark-action-bg); /* Dark bubble background */
+    color: var(--dark-text);
     border-radius: 12px;
     padding: 15px 20px;
     max-width: 90%;
-    align-self: flex-start; /* AI messages start from the left */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    align-self: flex-start;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     margin-bottom: 15px;
-    line-height: 1.8; /* Increased line height for better readability */
+    line-height: 1.8;
     border-bottom-left-radius: 4px;
 }
 
-/* Style for the main solution text inside the message */
 .ai-message p, .ai-message li {
-    font-size: 1.1em; /* Increased font size for easy reading (like a guidebook) */
-    white-space: pre-wrap; /* Ensures line breaks and spaces from AI response are preserved */
+    font-size: 1.1em;
+    white-space: pre-wrap;
     word-wrap: break-word;
 }
 
-/* Style for Math/LaTeX content within the solution */
 .ai-message .math-equation {
     display: block;
     text-align: center;
     margin: 15px 0;
     padding: 10px;
-    background-color: #e9ecef; /* Light gray background for equations */
+    background-color: #333; /* Darker gray background for equations */
     border-radius: 8px;
-    font-family: 'Courier New', monospace; /* Monospaced font for code/math clarity */
-    font-size: 1.2em; /* Slightly larger font for equations */
-    overflow-x: auto; /* Handles long equations */
-    color: var(--primary-color);
+    font-family: 'Courier New', monospace;
+    font-size: 1.2em;
+    overflow-x: auto;
+    color: var(--secondary-color); /* Highlight equations with light blue */
 }
 
-/* Bolding for **headings** or **important terms** */
 .ai-message strong {
-    color: #005f93; /* Slightly darker blue than primary */
+    color: var(--secondary-color); /* Highlight bold terms with light blue */
     font-weight: 700;
 }
 
 /* List styles for answers */
 .ai-message ul {
-    list-style-type: none; /* Remove default dots */
+    list-style-type: none;
     padding-left: 0;
     margin-top: 10px;
 }
 
 .ai-message li {
     margin-bottom: 5px;
-    padding-left: 1.5em; /* Space for custom bullet */
+    padding-left: 1.5em;
     position: relative;
 }
 
 .ai-message li::before {
-    content: "•"; /* Custom bullet point */
+    content: "•";
     color: var(--secondary-color);
     font-weight: bold;
     display: inline-block;
@@ -414,9 +413,9 @@ SOLUTION DISPLAY STYLES (NEW/FIXED)
 }
 
 .initial-message {
-    background-color: #EBF8FF;
+    background-color: #333; /* Darker initial message */
     border-color: var(--secondary-color);
-    color: var(--text-color);
+    color: var(--dark-text);
 }
 
 .message p {
@@ -432,7 +431,7 @@ SOLUTION DISPLAY STYLES (NEW/FIXED)
 }
 
 .ai-message .timestamp {
-    color: #6c757d;
+    color: var(--dark-subtitle); /* Light grey timestamp for AI messages */
 }
 
 /* Loading Dots Animation */
