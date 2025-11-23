@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Knowledge Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Use Inter font family -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        /* Custom scrollbar for chat */
+        #chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-history::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Landing Page Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center py-4">
+            <div class="text-3xl font-extrabold text-indigo-600 flex items-center">
+                <i data-lucide="sparkles" class="w-6 h-6 mr-2"></i>
+                Knowledge AI
+            </div>
+            <!-- Admin Panel Button: This link should be updated in your final deployment to point to the AdminPanel.jsx file -->
+            <a href="#admin" class="bg-indigo-50 text-indigo-700 font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-indigo-100 transition duration-150 flex items-center text-sm">
+                <i data-lucide="lock" class="w-4 h-4 mr-1"></i>
+                Go to Admin Login
+            </a>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="text-center py-20 bg-white rounded-xl shadow-lg mt-8">
+            <h1 class="text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+                Your AI, Grounded in Your Expertise
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                This platform uses a real-time knowledge base managed by the admin server to provide accurate, specific answers.
+            </p>
+            <button id="cta-button" onclick="document.getElementById('chat-widget').classList.toggle('hidden')" class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition duration-300 flex items-center justify-center mx-auto">
+                <i data-lucide="message-square" class="w-5 h-5 mr-2"></i>
+                Start Chatting with Our AI
+            </button>
+        </section>
+
+        <!-- Features Section -->
+        <section class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-indigo-500">
+                <i data-lucide="database" class="w-8 h-8 text-indigo-500 mb-3"></i>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Real-time Knowledge</h3>
+                <p class="text-gray-600">Admin updates are immediately reflected in the public AI chat's context.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-indigo-500">
+                <i data-lucide="image" class="w-8 h-8 text-indigo-500 mb-3"></i>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Multimodal Support</h3>
+                <p class="text-gray-600">The AI can analyze and answer questions about both text and images.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-indigo-500">
+                <i data-lucide="lock" class="w-8 h-8 text-indigo-500 mb-3"></i>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Secure Management</h3>
+                <p class="text-gray-600">Knowledge updates are restricted to the private, password-protected admin server.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center py-8 mt-16 text-gray-500 text-sm border-t border-gray-200">
+            &copy; 2024 AI Knowledge Platform. All rights reserved.
+        </footer>
+    </div>
+    
+    <!-- Floating AI Chat Widget -->
+    <div id="chat-widget" class="fixed bottom-6 right-6 w-full max-w-sm h-auto max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col z-50 transition-all duration-300 hidden">
+        
+        <!-- Chat Header -->
+        <div class="p-4 bg-indigo-600 text-white rounded-t-2xl flex justify-between items-center">
+            <div class="font-semibold text-lg flex items-center">
+                <i data-lucide="message-square" class="w-5 h-5 mr-2"></i>
+                Ask Our Knowledge AI
+            </div>
+            <button onclick="document.getElementById('chat-widget').classList.add('hidden')" class="p-1 rounded-full hover:bg-indigo-700 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Chat History -->
+        <div id="chat-history" class="flex-1 p-4 space-y-3 overflow-y-auto" style="min-height: 250px;">
+            <div class="bg-gray-100 text-gray-700 p-3 rounded-xl shadow-sm mr-auto max-w-[85%]">
+                <strong class="text-sm block mb-1 text-indigo-600">AI Assistant</strong>
+                Hello! I am grounded by the knowledge uploaded by the administrator. How can I assist you today?
+            </div>
+            <!-- Dynamic messages will be appended here -->
+        </div>
+        
+        <!-- Loading State -->
+        <div id="ai-loading" class="p-3 text-sm text-gray-500 flex items-center hidden">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2"></i>
+            AI is checking the knowledge base...
+        </div>
+
+        <!-- Chat Input -->
+        <form id="chat-form" class="p-4 border-t border-gray-200">
+            <div class="flex gap-2">
+                <input
+                    type="text"
+                    id="chat-input"
+                    class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-700"
+                    placeholder="Type your question..."
+                    autocomplete="off"
+                />
+                <button
+                    type="submit"
+                    id="send-button"
+                    class="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                >
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- CONSTANTS ---
+        // WARNING: Set this securely! Leave empty if using an environment variable injection.
+        const GEMINI_API_KEY = ""; 
+        const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
+        const KNOWLEDGE_DOC_PATH = "ai_knowledge/master_doc";
+        
+        // Global variables from the canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        // --- DOM ELEMENTS ---
+        const chatHistory = document.getElementById('chat-history');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('ai-loading');
+
+        // --- FIREBASE AND STATE ---
+        let db;
+        let auth;
+        let knowledgeText = "";
+        let knowledgeImageBase64 = null;
+        let isAILoading = false;
+
+        // --- HELPER FUNCTIONS ---
+
+        /**
+         * API call wrapper with exponential backoff for retries.
+         */
+        const generateContentWithRetry = async (payload, retries = 3) => {
+            if (!GEMINI_API_KEY) {
+                renderMessage("Public chat is disabled: Gemini API Key is missing. Ask the admin to configure the key.", 'model');
+                return null;
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+            const executeFetch = async (attempt) => {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API returned status ${response.status}: ${await response.text()}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.warn(`Attempt ${attempt + 1} failed:`, error.message);
+                    if (attempt < retries - 1) {
+                        const delay = Math.pow(2, attempt) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return executeFetch(attempt + 1);
+                    }
+                    throw new Error("Failed to communicate with Gemini API after multiple retries.");
+                }
+            };
+
+            return executeFetch(0);
+        };
+        
+        /**
+         * Renders a message bubble to the chat history.
+         */
+        const renderMessage = (text, role) => {
+            const messageDiv = document.createElement('div');
+            const isUser = role === 'user';
+            
+            messageDiv.className = `p-3 rounded-xl max-w-[85%] shadow-sm ${
+                isUser 
+                ? 'bg-indigo-50 text-indigo-800 self-end ml-auto' 
+                : 'bg-white text-gray-700 border border-gray-200 mr-auto'
+            }`;
+            
+            const strong = document.createElement('strong');
+            strong.className = 'text-sm block mb-1 font-semibold';
+            strong.textContent = isUser ? 'You' : 'AI Assistant';
+
+            const textContent = document.createElement('div');
+            textContent.className = 'whitespace-pre-wrap';
+            textContent.textContent = text;
+            
+            messageDiv.appendChild(strong);
+            messageDiv.appendChild(textContent);
+            chatHistory.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        };
+        
+        /**
+         * Sends a user query to the Gemini API.
+         */
+        const handleSendMessage = async (e) => {
+            e.preventDefault();
+            if (isAILoading || !GEMINI_API_KEY) return;
+
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+
+            renderMessage(userMessage, 'user');
+            chatInput.value = '';
+            
+            isAILoading = true;
+            loadingIndicator.classList.remove('hidden');
+            sendButton.disabled = true;
+
+            // 1. Construct the System Prompt
+            const systemPrompt = `You are an AI Assistant for a public-facing website. Your primary function is to answer questions based *only* on the "Knowledge Base" (text and image) provided below. Use the text and analyze the image to provide the most accurate, grounded answer. If a question cannot be answered using *only* this data, politely state that the information is not in your knowledge base.
+
+--- AI Knowledge Data ---
+TEXT: ${knowledgeText || "No text knowledge data uploaded yet."}
+--- End of Data ---`;
+
+            // 2. Prepare the Payload Parts (Multimodal if image exists)
+            const userParts = [{ text: userMessage }];
+            
+            if (knowledgeImageBase64) {
+                const mimeMatch = knowledgeImageBase64.match(/^data:(image\/[a-zA-Z0-9\-\.]+);base64,/);
+                const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                const base64Data = knowledgeImageBase64.split(',')[1];
+
+                userParts.unshift({
+                    inlineData: {
+                        mimeType: mimeType,
+                        data: base64Data
+                    }
+                });
+            }
+
+            const payload = {
+                contents: [{ role: 'user', parts: userParts }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            try {
+                const result = await generateContentWithRetry(payload);
+                if (result) {
+                    const modelResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that request.";
+                    renderMessage(modelResponse, 'model');
+                }
+            } catch (e) {
+                console.error("Gemini API Error:", e);
+                renderMessage(`An error occurred while communicating with the AI: ${e.message}`, 'model');
+            } finally {
+                isAILoading = false;
+                loadingIndicator.classList.add('hidden');
+                sendButton.disabled = false;
+            }
+        };
+
+
+        // --- FIREBASE INITIALIZATION ---
+        const initFirebase = async () => {
+            if (!firebaseConfig) {
+                console.error("Firebase configuration missing.");
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Sign in anonymously for public read access
+                await signInAnonymously(auth);
+                console.log("Signed in anonymously for public access.");
+
+                // Start listening for knowledge updates
+                startKnowledgeListener();
+                
+                chatForm.addEventListener('submit', handleSendMessage);
+
+            } catch (error) {
+                console.error("Firebase initialization or sign-in failed:", error);
+            }
+        };
+
+        // --- FIRESTORE LISTENER ---
+        const startKnowledgeListener = () => {
+            // The path must match the AdminPanel's WRITE path for the public data
+            const docRef = doc(db, `/artifacts/${appId}/public/data/${KNOWLEDGE_DOC_PATH}`);
+
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    knowledgeText = data.content || "";
+                    knowledgeImageBase64 = data.image || null;
+                    console.log(`Knowledge Base Updated! Text size: ${knowledgeText.length}, Image present: ${!!knowledgeImageBase64}`);
+                } else {
+                    knowledgeText = "No knowledge data found in the master document.";
+                    knowledgeImageBase64 = null;
+                    console.log("Knowledge Base document does not exist.");
+                }
+            }, (error) => {
+                console.error("Firestore public knowledge listener error:", error);
+            });
+        };
+
+        // Initialize on window load
+        window.onload = () => {
+            lucide.createIcons(); // Initialize Lucide icons
+            initFirebase();
+        };
+
+    </script>
+</body>
+</html>
+
