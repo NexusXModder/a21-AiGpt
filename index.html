@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>21GPT • Admin-Trained AI (Option A)</title>
+  <title>21GPT • Flash + Pro (Google-only)</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="header">
-      <div class="brand"><div class="logo">21</div><div class="titles"><div class="name">21GPT</div><div class="sub">Admin-trained AI</div></div></div>
+      <div class="brand"><div class="logo">21</div><div class="titles"><div class="name">21GPT</div><div class="sub">Google Gemini (Flash + Pro)</div></div></div>
       <div><button id="adminBtn" class="btn">Admin</button></div>
     </header>
 
@@ -19,8 +19,8 @@
     <div class="composer">
       <input id="input" placeholder="Ask anything..." autocomplete="off" />
       <select id="model">
-        <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-        <option value="gpt-4o-mini">chatgpt (gpt-4o-mini)</option>
+        <option value="gemini-1.5-flash">gemini-1.5-flash (default)</option>
+        <option value="gemini-1.5-pro">gemini-1.5-pro (higher quality)</option>
       </select>
       <button id="send" class="btn primary">Send</button>
     </div>
@@ -28,7 +28,7 @@
     <div id="toast" class="toast hidden"></div>
   </div>
 
-  <!-- Firebase (compat build for simplicity) -->
+  <!-- Firebase (compat build) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 

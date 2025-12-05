@@ -16,5 +16,5 @@
 .composer select{padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:inherit}
 .btn{padding:10px 12px;border-radius:10px;border:0;background:rgba(255,255,255,0.03);color:inherit;cursor:pointer}
 .btn.primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white;font-weight:700}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#0b1220;color:#fff;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#0b1220;color:#fff;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);max-width:90%;word-break:break-word}
 .hidden{display:none}
