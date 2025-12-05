@@ -1,7 +1,6 @@
-
 :root{--bg:#07070a;--accent1:#6366f1;--accent2:#ec4899;--muted:#9aa3b2}
 *{box-sizing:border-box}body,html{height:100%;margin:0;background:linear-gradient(180deg,#030313,#071026);font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto;color:#e6eef8}
-.app{max-width:720px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+.app{max-width:900px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
 .header{display:flex;justify-content:space-between;align-items:center;padding:14px}
 .brand{display:flex;gap:12px;align-items:center}
 .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:white}

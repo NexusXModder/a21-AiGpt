@@ -1,4 +1,8 @@
-/* === CONFIG === */
+/* FRONTEND - calls Render backend at /api/generate
+   Keeps Firebase training (admin) client-side (Option A)
+*/
+
+/* Firebase config (client-side) */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCSgJ3dP9iOcp-yc-pZqh2e8kynygrs2sk",
   authDomain: "ai-21gpt.firebaseapp.com",
@@ -10,14 +14,10 @@ const FIREBASE_CONFIG = {
   databaseURL: "https://ai-21gpt-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 
-const GEMINI_KEY = "AIzaSyAvMiWCYmWbGLfr4HZSEayJ61tBhOLUBik";
-const ADMIN_PASSWORD = "arafmahbub@16";
-/* ========================= */
-
 firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.database();
 
-// UI refs
+/* DOM refs */
 const chat = document.getElementById('chat');
 const input = document.getElementById('input');
 const sendBtn = document.getElementById('send');
@@ -25,120 +25,53 @@ const modelSelect = document.getElementById('model');
 const adminBtn = document.getElementById('adminBtn');
 const toast = document.getElementById('toast');
 
-function showToast(msg, ms = 2000) {
-  toast.innerText = msg;
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), ms);
-}
+function showToast(msg, ms=2500){ toast.innerText = msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), ms); }
+function addMsg(text, cls='bot'){ const el=document.createElement('div'); el.className='msg '+cls; el.innerText=text; chat.appendChild(el); chat.scrollTop=chat.scrollHeight; return el; }
 
-function renderMessage(text, cls = 'bot') {
-  const el = document.createElement('div');
-  el.className = 'msg ' + cls;
-  el.innerText = text;
-  chat.appendChild(el);
-  chat.scrollTop = chat.scrollHeight;
-  return el;
-}
-
-// Load admin training
-let trainingPieces = [];
-async function loadTraining() {
-  const snap = await db.ref('prompts/training').once('value');
-  const data = snap.val() || {};
-  trainingPieces = Object.keys(data).map(k => data[k].text);
-}
+/* Load training */
+let training = [];
+async function loadTraining(){ const s = await db.ref('prompts/training').once('value'); const d = s.val() || {}; training = Object.keys(d).map(k=>d[k].text); }
 loadTraining();
 
-function buildPrompt(userMsg) {
-  const training = trainingPieces.join("\n---\n");
-  return training + "\nUser: " + userMsg + "\nAssistant:";
-}
+function buildPrompt(userMessage){ const t = training.join('\n---\n'); return (t ? t + '\n\n' : '') + 'User: ' + userMessage + '\nAssistant:'; }
 
-// FIXED GEMINI CALL (NO INVALID FIELDS)
-async function callGemini(prompt, model) {
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${GEMINI_KEY}`;
-
-  const body = {
-    contents: [
-      {
-        parts: [{ text: prompt }]
-      }
-    ]
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+/* Call our backend on Render */
+async function callBackend(prompt, model){
+  const res = await fetch('/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, model })
   });
-
-  if (!res.ok) {
-    throw await res.text();
+  if(!res.ok){
+    const txt = await res.text();
+    throw new Error(txt || ('HTTP ' + res.status));
   }
-
-  const data = await res.json();
-  return (
-    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-    data?.candidates?.[0]?.content?.[0]?.text ||
-    "No response"
-  );
+  return await res.json(); // { text, raw }
 }
 
-// Send message
-async function sendMessage() {
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = "";
-
-  renderMessage(text, "user");
-
-  const prompt = buildPrompt(text);
-  const model = modelSelect.value;
-
-  const placeholder = renderMessage("...", "bot");
-
-  try {
-    const reply = await callGemini(prompt, model);
-    placeholder.innerText = reply;
-  } catch (err) {
-    placeholder.innerText = "Error generating response.";
-    console.error(err);
+async function sendMessage(){
+  const text = input.value.trim(); if(!text) return; input.value=''; addMsg(text,'user'); showToast('Thinking...');
+  const prompt = buildPrompt(text); const model = modelSelect.value;
+  const placeholder = addMsg('...', 'bot');
+  try{
+    const result = await callBackend(prompt, model);
+    placeholder.innerText = result.text || 'No response';
+  }catch(e){
+    placeholder.innerText = 'Error generating response.';
+    console.error(e);
+    showToast('Error: '+(e.message||e));
   }
 }
 
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keydown", e => e.key === "Enter" && sendMessage());
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', e=>{ if(e.key==='Enter') sendMessage(); });
 
-// Admin panel
-adminBtn.addEventListener("click", async () => {
-  const pass = prompt("Enter admin password:");
-  if (pass !== ADMIN_PASSWORD) return alert("Wrong password");
-
-  const action = prompt("1) Add\n2) View\n3) Clear", "1");
-
-  if (action === "1") {
-    const t = prompt("Enter training:");
-    if (t) {
-      await db.ref("prompts/training").push({
-        text: t,
-        createdAt: Date.now()
-      });
-      await loadTraining();
-      alert("Saved");
-    }
-  }
-
-  if (action === "2") {
-    await loadTraining();
-    alert(trainingPieces.join("\n---\n") || "No training saved");
-  }
-
-  if (action === "3") {
-    if (confirm("Delete all?")) {
-      await db.ref("prompts/training").remove();
-      await loadTraining();
-      alert("Cleared");
-    }
-  }
+/* Admin actions (Option A) */
+adminBtn.addEventListener('click', async ()=>{
+  const pass = prompt('Enter admin password:');
+  if(pass !== 'arafmahbub@16'){ alert('Wrong'); return; }
+  const action = prompt('1 Add training\\n2 View training\\n3 Clear training','1');
+  if(action === '1'){ const t = prompt('Enter training text:'); if(t){ await db.ref('prompts/training').push({ text: t, createdAt: Date.now() }); await loadTraining(); alert('Saved'); } }
+  if(action === '2'){ await loadTraining(); alert(training.join('\\n\\n---\\n\\n') || 'No training'); }
+  if(action === '3'){ if(confirm('Clear all training?')){ await db.ref('prompts/training').remove(); training=[]; alert('Cleared'); } }
 });
