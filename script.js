@@ -1,5 +1,5 @@
 
-/* CONFIG - Keys embedded as requested */
+/* === CONFIG (embedded as requested) === */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCSgJ3dP9iOcp-yc-pZqh2e8kynygrs2sk",
   authDomain: "ai-21gpt.firebaseapp.com",
@@ -8,11 +8,11 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "1032282591164",
   appId: "1:1032282591164:web:1d99408401f0e8025165b9",
   measurementId: "G-FSEJP366FD",
-  databaseURL: "https://ai-21gpt-default-rtdb.firebaseio.com"
+  databaseURL: "https://ai-21gpt-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 const GEMINI_KEY = "AIzaSyAvMiWCYmWbGLfr4HZSEayJ61tBhOLUBik";
 const ADMIN_PASSWORD = "arafmahbub@16";
-/* END CONFIG */
+/* ===================================== */
 
 firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.database();
@@ -25,9 +25,8 @@ const modelSelect = document.getElementById('model');
 const adminBtn = document.getElementById('adminBtn');
 const toast = document.getElementById('toast');
 
-function showToast(msg, ms=2500){ toast.innerText = msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), ms) }
+function showToast(msg, ms=3000){ toast.innerText = msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), ms) }
 
-// push & render helpers
 function renderMessage(text, cls='bot'){
   const el = document.createElement('div');
   el.className = 'msg ' + cls;
@@ -37,50 +36,39 @@ function renderMessage(text, cls='bot'){
   return el;
 }
 
-function pushToFirebase(role, text){
-  const ref = db.ref('chats/default').push();
-  return ref.set({ role, text, createdAt: Date.now() });
+// Load admin training (few-shot) from Firebase (prompts/training). Option A keeps only training saved.
+let trainingPieces = [];
+async function loadTraining(){
+  const snap = await db.ref('prompts/training').once('value');
+  const data = snap.val() || {};
+  trainingPieces = Object.keys(data).map(k => data[k].text);
+}
+loadTraining();
+
+// Build prompt from training pieces + user message
+function buildPrompt(userMessage){
+  const trainingText = trainingPieces.join('\n---\n') + (trainingPieces.length ? '\n\n' : '');
+  return trainingText + 'User: ' + userMessage + '\nAssistant:';
 }
 
-// listen for realtime updates (live mirror)
-db.ref('chats/default').on('value', snap => {
-  const data = snap.val() || {};
-  chat.innerHTML = '';
-  const arr = Object.keys(data).map(k => ({ id:k, ...data[k] }));
-  arr.sort((a,b)=>a.createdAt - b.createdAt);
-  for(const m of arr) {
-    renderMessage(m.text, m.role === 'user' ? 'user' : 'bot');
-  }
-});
-
-// read system prompt
-let systemPrompt = '';
-db.ref('prompts/system').on('value', s => { const v = s.val(); if(v && v.text) systemPrompt = v.text; });
-
-// Gemini request function for generateContent
-async function callGemini(prompt, model='gemini-1.5-flash'){
-  // Use generateContent endpoint with correct body shape
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
-  const body = {
-    "prompt": {
-      "text": prompt
-    },
-    "temperature": 0.2,
-    "maxOutputTokens": 512
-  };
-  try {
-    const res = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
-    if(!res.ok){
-      const txt = await res.text();
-      throw new Error('HTTP ' + res.status + ': ' + txt);
-    }
-    const j = await res.json();
-    // parse text from different possible shapes
-    const text = j?.candidates?.[0]?.content?.parts?.[0]?.text || j?.output?.text || (j?.candidates?.[0]?.content?.text) || JSON.stringify(j);
+// Gemini call (generateContent for gemini-1.5-flash) OR ChatGPT fallback using OpenAI-style endpoint if selected
+async function callModel(prompt, model){
+  if(model.startsWith('gemini')){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
+    const body = { prompt: { text: prompt }, temperature: 0.2, maxOutputTokens: 512 };
+    const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+    if(!r.ok){ const t = await r.text(); throw new Error('Gemini HTTP ' + r.status + ': ' + t); }
+    const j = await r.json();
+    const text = j?.candidates?.[0]?.content?.parts?.[0]?.text || j?.output?.text || JSON.stringify(j);
     return text;
-  } catch(e){
-    console.error('Gemini error', e);
-    throw e;
+  } else {
+    // ChatGPT-style fallback using OpenAI-compatible endpoint (if user selected chatgpt option and has key)
+    const url = 'https://api.openai.com/v1/chat/completions';
+    const payload = { model: 'gpt-4o-mini', messages: [ { role:'system', content:'You are a helpful assistant.' }, { role:'user', content: prompt } ], max_tokens: 800 };
+    const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + GEMINI_KEY }, body: JSON.stringify(payload) });
+    if(!r.ok){ const t = await r.text(); throw new Error('OpenAI HTTP ' + r.status + ': ' + t); }
+    const j = await r.json();
+    return j?.choices?.[0]?.message?.content || JSON.stringify(j);
   }
 }
 
@@ -88,54 +76,38 @@ async function sendMessage(){
   const text = input.value.trim();
   if(!text) return;
   input.value = '';
-  // optimistic render + push
   renderMessage(text, 'user');
-  await pushToFirebase('user', text);
-  // compose prompt
-  // fetch last 8 messages to include context
-  const snap = await db.ref('chats/default').once('value');
-  const data = snap.val() || {};
-  const arr = Object.keys(data).map(k => ({ id:k, ...data[k] }));
-  arr.sort((a,b)=>a.createdAt - b.createdAt);
-  const last = arr.slice(-8).map(m => (m.role === 'user' ? 'User: ' : 'Assistant: ') + m.text).join('\n');
-  const finalPrompt = (systemPrompt ? 'System: ' + systemPrompt + '\n\n' : '') + last + '\nUser: ' + text;
-  // show typing placeholder
-  const typing = renderMessage('...', 'bot');
+  showToast('Thinking...');
+
+  const prompt = buildPrompt(text);
+  const model = modelSelect.value;
+  const placeholder = renderMessage('...', 'bot');
   try{
-    const model = modelSelect.value || 'gemini-1.5-flash';
-    const ai = await callGemini(finalPrompt, model);
-    typing.innerText = ai;
-    await pushToFirebase('assistant', ai);
-  } catch(e){
-    typing.innerText = 'Error generating response. See console.';
-    showToast('Failed to reach Gemini: ' + (e.message || e));
+    const ai = await callModel(prompt, model);
+    placeholder.innerText = ai;
+    showToast('Response received');
+  }catch(e){
+    console.error('Model error', e);
+    placeholder.innerText = 'Error generating response. Open console for details.';
+    showToast('Error: ' + (e.message || e));
   }
 }
 
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
 
-// Admin quick modal using prompt()
+// Admin panel (Option A) — only training data saved, no chat storing
 adminBtn.addEventListener('click', async ()=>{
   const pass = prompt('Enter admin password:');
   if(pass !== ADMIN_PASSWORD){ alert('Wrong password'); return; }
-  const action = prompt('Type: 1 to set system prompt, 2 to clear chat, 3 to view/edit teaching data (training)');
+  const action = prompt('Admin actions:\n1) Add training example\n2) View training\n3) Clear training', '1');
   if(action === '1'){
-    const s = prompt('Enter system prompt:', systemPrompt);
-    if(s !== null) { await db.ref('prompts/system').set({ text: s, updatedAt: Date.now() }); alert('Saved'); }
+    const t = prompt('Enter training example (short):');
+    if(t){ await db.ref('prompts/training').push({ text: t, createdAt: Date.now() }); await loadTraining(); alert('Saved'); }
   } else if(action === '2'){
-    if(confirm('Clear all chat?')){ await db.ref('chats/default').remove(); alert('Cleared'); }
+    await loadTraining();
+    alert(trainingPieces.join('\n\n---\n\n') || 'No training saved');
   } else if(action === '3'){
-    const tSnap = await db.ref('prompts/training').once('value');
-    const curr = tSnap.val() || {};
-    const currText = Object.keys(curr).map(k=>curr[k].text).join('\n---\n');
-    const newText = prompt('Edit training examples (separate with \n---\n):', currText);
-    if(newText !== null){
-      // replace training with new items
-      await db.ref('prompts/training').remove();
-      const parts = newText.split('\n---\n').map(s=>s.trim()).filter(Boolean);
-      for(const p of parts){ await db.ref('prompts/training').push({ text: p, createdAt: Date.now() }); }
-      alert('Training updated'); 
-    }
+    if(confirm('Delete all training?')){ await db.ref('prompts/training').remove(); await loadTraining(); alert('Cleared'); }
   }
 });
