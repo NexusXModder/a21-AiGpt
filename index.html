@@ -1,46 +1,36 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>21GPT • Ultra Premium AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>21GPT • Fixed Premium AI</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="bg-gradient-to-b from-black to-gray-900 text-white">
-
-  <div class="max-w-3xl mx-auto h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="backdrop-blur-xl bg-white/5 border-b border-white/10 p-4 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-600 flex justify-center items-center text-xl font-bold">
-          21
-        </div>
-        <div>
-          <div class="text-lg font-bold">21GPT AI</div>
-          <div class="text-sm text-gray-300 -mt-1">Premium AI Assistant</div>
-        </div>
-      </div>
-
-      <button id="adminBtn" class="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
-        Admin
-      </button>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand"><div class="logo">21</div><div><div class="name">21GPT</div><div class="sub">Premium AI Assistant</div></div></div>
+      <div><button id="adminBtn" class="btn">Admin</button></div>
     </header>
 
-    <!-- Chat -->
-    <main id="chat" class="flex-1 overflow-y-auto p-4 space-y-4"></main>
+    <main id="chat" class="chat"></main>
 
-    <!-- Input -->
-    <div class="backdrop-blur-xl bg-white/5 border-t border-white/10 p-3 flex gap-2">
-      <input id="msg" placeholder="Type a message..." class="flex-1 px-3 py-2 bg-black/30 rounded-lg outline-none">
-      <button id="sendBtn" class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-pink-600 rounded-lg font-bold">Send</button>
+    <div class="composer">
+      <input id="input" placeholder="Ask anything..." autocomplete="off" />
+      <select id="model">
+        <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+        <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+      </select>
+      <button id="send" class="btn primary">Send</button>
     </div>
 
+    <div id="toast" class="toast hidden"></div>
   </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
   <script src="script.js"></script>
 

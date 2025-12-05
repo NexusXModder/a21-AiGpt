@@ -1,3 +1,20 @@
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+:root{--bg:#07070a;--card:#0f1724;--muted:#9aa3b2;--accent1:#6366f1;--accent2:#ec4899}
+*{box-sizing:border-box}body,html{height:100%;margin:0;background:linear-gradient(180deg,#030313 0%,#071026 100%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto;color:#e6eef8}
+.app{max-width:720px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:white}
+.name{font-weight:700}
+.sub{font-size:12px;color:var(--muted)}
+.chat{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:78%;padding:12px 14px;border-radius:14px;white-space:pre-wrap;line-height:1.45;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+.user{align-self:flex-end;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white}
+.bot{align-self:flex-start;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.03);color:#d7e3f3}
+.composer{display:flex;gap:8px;padding:14px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));align-items:center}
+.composer input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit;outline:none}
+.composer select{padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:inherit}
+.btn{padding:10px 12px;border-radius:10px;border:0;background:rgba(255,255,255,0.03);color:inherit;cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white;font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#0b1220;color:#fff;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)}
+.hidden{display:none}
