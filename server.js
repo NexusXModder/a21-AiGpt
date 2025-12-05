@@ -1,61 +1,37 @@
-import express from "express";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
+async function sendMessage() {
+  const input = document.getElementById("userInput").value.trim();
+  if (!input) return;
 
-dotenv.config();
+  addMessage(input, "user");
+  document.getElementById("userInput").value = "";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
-app.use(express.json());
-app.use(express.static(__dirname));   // Serve frontend files
-
-// 🔥 FIXED: Correct Gemini URL (NO double models/)
-app.post("/api/generate", async (req, res) => {
   try {
-    const { prompt, model } = req.body;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_KEY}`;
-
-    const body = {
-      contents: [
-        {
-          parts: [{ text: prompt }]
-        }
-      ]
-    };
-
-    const response = await fetch(url, {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ message: input })
     });
 
-    const text = await response.text(); // read raw
-    let data;
+    const data = await res.json();
 
-    try {
-      data = JSON.parse(text);
-    } catch (err) {
-      return res.status(500).json({
-        error: "Google returned invalid JSON",
-        raw: text
-      });
+    if (!data.reply) {
+      addMessage("Error generating response.", "bot");
+      console.error(data);
+      return;
     }
 
-    res.json(data);
-
+    addMessage(data.reply, "bot");
   } catch (err) {
-    res.status(500).json({
-      error: "Server error",
-      details: err.message
-    });
+    addMessage("Error generating response.", "bot");
+    console.error(err);
   }
-});
+}
 
-// Render port
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+function addMessage(text, sender) {
+  const box = document.getElementById("chatBox");
+  const msg = document.createElement("div");
+  msg.className = sender === "user" ? "userMsg" : "botMsg";
+  msg.innerText = text;
+  box.appendChild(msg);
+  box.scrollTop = box.scrollHeight;
+}
