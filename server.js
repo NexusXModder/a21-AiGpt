@@ -10,39 +10,52 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-
 app.use(express.json());
+app.use(express.static(__dirname));   // Serve frontend files
 
-// Serve frontend files
-app.use(express.static(__dirname));
-
-// Gemini backend API
+// 🔥 FIXED: Correct Gemini URL (NO double models/)
 app.post("/api/generate", async (req, res) => {
   try {
     const { prompt, model } = req.body;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }]
-            }
-          ]
-        })
-      }
-    );
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_KEY}`;
 
-    const data = await response.json();
+    const body = {
+      contents: [
+        {
+          parts: [{ text: prompt }]
+        }
+      ]
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const text = await response.text(); // read raw
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      return res.status(500).json({
+        error: "Google returned invalid JSON",
+        raw: text
+      });
+    }
+
     res.json(data);
+
   } catch (err) {
-    res.status(500).json({ error: "Server error", details: err.message });
+    res.status(500).json({
+      error: "Server error",
+      details: err.message
+    });
   }
 });
 
-// Render needs this port
+// Render port
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
